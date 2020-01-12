@@ -96,28 +96,8 @@ public class ParserXML {
                     e = e.toLowerCase();
                     tmp = e.split(" ");
 
-                    if (typeElement >= 2 ){
-                        NodeList elementPar = document.getElementsByTagName("p");
-                        List<Paragraph> paragraphs = new ArrayList<>();
-                        for (int j = 0; j < elementPar.getLength(); j++) {
-                            String ep = elementPar.item(j).getTextContent();
-                            ep.trim();
-                            ep = ep.replaceAll("\n", " ");
-                            ep = ep.replaceAll("[^A-Za-z0-9 ]", " ");
-                            ep = ep.replaceAll("^ +| +$|( )+", "$1");
-                            ep = ep.toLowerCase();
-                            tmp_ep = ep.split(" ");
+                    sec = new Section(tmp.length, i, Arrays.asList(tmp));
 
-                            Paragraph par = new Paragraph(tmp_ep.length, j, Arrays.asList(tmp_ep));
-                            paragraphs.add(par);
-                        }
-
-                        sec = new Section(tmp.length, i, Arrays.asList(tmp), paragraphs);
-
-                    }
-                    else {
-                        sec = new Section(tmp.length, i, Arrays.asList(tmp));
-                    }
                     sections.add(sec);
 
                 }

@@ -8,7 +8,7 @@ import java.util.Scanner;
 
 public class MainApplication {
     private static int step = 2; // 1 = txt, 2 = XML
-    private static int typeElement = 2; //0 = article, 1 = section, 2 = paragraph
+    private static int typeElement = 1; //0 = article, 1 = section
     private static boolean useStopWord = false;
     private static boolean useStemmer = false;
 
@@ -67,6 +67,9 @@ public class MainApplication {
 
         for (int i = 0; i < ponderation.size(); i++) {
             result = rs.ranking_all_queries(requete, lib, ponderation.get(i), typeElement);
+            if (typeElement == 1){
+                result = rs.keep_max_score(result);
+            }
             //System.out.println("result : " + result.toString());
             // Création du fichier avec le bon nom de fichier dans un dossier "out"
             System.out.println("Creation du fichier " + ponderation.get(i));

@@ -63,7 +63,6 @@ public class RunFileCreator {
         Queries q = new Queries();
         for (int i=0; i<7; i++) {
             for (int j = 0; j < 1500; j++) {
-                System.out.println(result.get(i).get(j).getParid());
                 if(result.get(i).get(j).getParid() != -1){
                     path = "/article[1]/bdy/sec[" + result.get(i).get(j).getSecid() + "]/p["+ result.get(i).get(j).getParid() + "]";
                 }

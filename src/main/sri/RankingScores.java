@@ -87,7 +87,6 @@ public class RankingScores {
                     List<List<Float>> all_normalized_score = new ArrayList<>();
 
                     for(int j= 0; j < all_tf_per_sec.size(); j++) {
-                        System.out.println(all_tf_per_sec.get(j));
                         List<Float> normalised_scores = normalisation(all_tf_per_sec.get(j), codeSMART.charAt(2));
                         all_normalized_score.add(normalised_scores);
                     }
@@ -105,105 +104,10 @@ public class RankingScores {
                     df.clear();
                 }
                 return result;
-            case 2: //Paragraph
-                List<List<List<Float>>> tf_per_doc_sec_par = new ArrayList<>();
-                List<List<Float>>  tf_per_sec_par = new ArrayList<>();
-
-                for (int i = 0; i < 7; i++) {
-                    for (int k = 0; k < q.getRequetes()[i].size(); k++) {
-                        df.add((float) 0);
-                    }
-                    //Calculer le tf de chaque mot de la requête par document
-                    for (int j = 0; j < lib.doclist.size(); j++) {
-                        for (int k = 0; k < lib.doclist.get(j).getSection().size(); k++) {
-                            for (int l = 0; l < lib.doclist.get(j).getSection().get(k).getParagraphs().size(); l++) {
-                                List<Float> tf_per_sec = calculate_tf_per_request_per_paragraph(q.getRequetes()[i], lib.getDoclist().get(j).getSection().get(k).getParagraphs().get(l), codeSMART.charAt(0));
-                                //System.out.println("doc id : " + i + " tf : " + tf_per_doc);
-                                tf_per_sec_par.add(tf_per_sec);
-                                //System.out.println(tf_per_doc);
-                            }
-
-                            tf_per_doc_sec_par.add(tf_per_sec_par);
-                            tf_per_sec_par = new ArrayList<>();
-                        }
-                        all_tf_per_par.add(tf_per_doc_sec_par);
-                        tf_per_doc_sec_par = new ArrayList<>();
-
-                    }
-                    //Calculer l'idf
-                    for (int j = 0; j < all_tf_per_par.size(); j++) {
-                        for (int k = 0; k < all_tf_per_sec.get(j).size(); k++) {
-                            for (int l = 0; l < all_tf_per_sec.get(j).get(k).size(); l++) {
-                                List<Float> tf_times_idf_per_doc = calculate_idf_per_tf(all_tf_per_par.get(j).get(k).get(l), lib.getDoclist().size(), codeSMART.charAt(1));
-                                all_tf_per_par.get(j).get(k).set(l, tf_times_idf_per_doc);
-                                //System.out.println(tf_times_idf_per_doc);
-                            }
-                        }
-                    }
-
-                    //Normalisation
-                    List<List<List<Float>>> all_normalized_score_par = new ArrayList<>();
-                    List<List<Float>> normalize_score_for_sec = new ArrayList<>();
-
-                    for(int j= 0; j < all_tf_per_par.size(); j++) {
-                        for (int k = 0; k < all_tf_per_par.get(j).size(); k++) {
-                            List<Float> normalised_scores = normalisation(all_tf_per_sec.get(j), codeSMART.charAt(2));
-                            normalize_score_for_sec.add(normalised_scores);
-                        }
-                        all_normalized_score_par.add(normalize_score_for_sec);
-                    }
-
-                    for (int j = 0; j < all_normalized_score_par.size(); j++) {
-                        for (int k = 0; k < all_normalized_score_par.get(j).size(); k++) {
-                            for (int l = 0; l < all_normalized_score_par.get(j).get(k).size(); l++) {
-                                Score tmp = new Score(all_normalized_score_par.get(j).get(k).get(l), lib.getDoclist().get(j).getId(), lib.getDoclist().get(j).getSection().get(k).getId(), lib.getDoclist().get(j).getSection().get(k).getParagraphs().get(l).getId());
-                                score_per_request.add(tmp);
-                            }
-                        }
-                    }
-                    Collections.sort(score_per_request, Collections.reverseOrder());
-                    result.add(score_per_request);
-                    score_per_request = new ArrayList<>();
-                    all_tf_per_par.clear();
-                    df.clear();
-                }
-                return result;
-
-
         }
 
         return result;
 
-    }
-
-    private List<Float> calculate_tf_per_request_per_paragraph(List<String> request, Paragraph par, char code_tf) {
-        List<Float> tf_per_word = new ArrayList<>();
-
-        for (int i = 0; i < request.size(); i++) {
-            String word = request.get(i);
-            tf_per_word.add((float) (0));
-
-            for (int k = 0; k < par.getPostingList().size(); k++) {
-                if (word.compareTo(par.getPostingList().get(k).getKey()) == 0) {
-                    tf_per_word.set(i, (float) par.getPostingList().get(k).getValue());
-
-                    df.set(i, df.get(i) + 1);
-                }
-            }
-        }
-
-
-        if (code_tf == 'l') {
-            for (int i = 0; i < tf_per_word.size(); i++) {
-                float tmp = (float) (1 + Math.log10(tf_per_word.get(i)));
-                if (Float.isInfinite(tmp)) {
-                    tmp = 0;
-                }
-                tf_per_word.set(i, tmp);
-            }
-        }
-
-        return tf_per_word;
     }
 
     private List<Float> calculate_tf_per_request_per_section(List<String> request, Section section, char code_tf) {
@@ -335,5 +239,26 @@ public class RankingScores {
                 break;
         }
         return normalised_score;
+    }
+
+    public List<List<Score>> keep_max_score(List<List<Score>> list_score){
+        List<List<Score>> result = new ArrayList<>();
+        List<Score> scores_for_one_request = new ArrayList<>();
+        List<Integer> id_visited = new ArrayList<>();
+
+        for( int i=0; i < list_score.size(); i++){
+            for(int j=0; j < list_score.get(i).size(); j++){
+                if (!id_visited.contains(list_score.get(i).get(j).getDocid())){
+                    scores_for_one_request.add(list_score.get(i).get(j));
+                    id_visited.add(list_score.get(i).get(j).getDocid());
+                }
+
+            }
+            Collections.sort(scores_for_one_request, Collections.reverseOrder());
+            result.add(scores_for_one_request);
+            scores_for_one_request = new ArrayList<>();
+            id_visited = new ArrayList<>();
+        }
+        return result;
     }
 }
