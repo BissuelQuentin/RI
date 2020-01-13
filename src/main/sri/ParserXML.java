@@ -11,6 +11,8 @@ import javax.sound.sampled.Port;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -86,6 +88,10 @@ public class ParserXML {
                 //Gestion des sections
                 Section sec;
                 NodeList element = document.getElementsByTagName("sec");
+                XPathFactory xpf = XPathFactory.newInstance();
+               // XPath path;
+                String path;
+
                 List<Section> sections = new ArrayList<>();
                 for (int i = 0; i < element.getLength(); i++) {
                     String e = element.item(i).getTextContent();
@@ -96,7 +102,29 @@ public class ParserXML {
                     e = e.toLowerCase();
                     tmp = e.split(" ");
 
-                    sec = new Section(tmp.length, i, Arrays.asList(tmp));
+                    if(typeElement >=2){
+                        NodeList element_ep = document.getElementsByTagName("p");
+                        List<Paragraph> paragraphs = new ArrayList<>();
+                        for(int j=0; j<element_ep.getLength(); j++) {
+                            String ep = element_ep.item(j).getTextContent();
+                            ep.trim();
+                            ep = ep.replaceAll("\n", " ");
+                            ep = ep.replaceAll("[^A-Za-z0-9 ]", " ");
+                            ep = ep.replaceAll("^ +| +$|( )+", "$1");
+                            ep = ep.toLowerCase();
+                            tmp_ep = ep.split(" ");
+
+                            Paragraph par = new Paragraph(tmp_ep.length, j, Arrays.asList(tmp));
+
+                            paragraphs.add(par);
+                        }
+
+                        sec = new Section(tmp.length, i, Arrays.asList(tmp), paragraphs);
+
+                    }
+                    else {
+                        sec = new Section(tmp.length, i, Arrays.asList(tmp));
+                    }
 
                     sections.add(sec);
 

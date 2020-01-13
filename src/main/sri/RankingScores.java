@@ -1,5 +1,7 @@
 package main.sri;
 
+import javafx.util.Pair;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -9,7 +11,6 @@ public class RankingScores {
     int tf = 0;
     double avLength = 0;
     boolean calc_avLenght = false;
-    int dl = 0;
 
 
 
@@ -77,8 +78,8 @@ public class RankingScores {
                     //Calculer l'idf
                     for (int j = 0; j < all_tf_per_sec.size(); j++) {
                         for (int l = 0; l < all_tf_per_sec.get(j).size(); l++) {
-                            List<Float> tf_times_idf_per_doc = calculate_idf_per_tf(all_tf_per_sec.get(j).get(l), lib.getDoclist().size(), codeSMART.charAt(1));
-                            all_tf_per_sec.get(j).set(l, tf_times_idf_per_doc);
+                            List<Float> tf_times_idf_per_sec = calculate_idf_per_tf(all_tf_per_sec.get(j).get(l), lib.getDoclist().size(), codeSMART.charAt(1));
+                            all_tf_per_sec.get(j).set(l, tf_times_idf_per_sec);
                             //System.out.println(tf_times_idf_per_doc);
                         }
                     }
@@ -104,10 +105,103 @@ public class RankingScores {
                     df.clear();
                 }
                 return result;
+            case 2: // Section
+                List<List<Float>> tf_per_sec_par = new ArrayList<>();
+                List<List<List<Float>>> tf_per_doc_sec_par = new ArrayList<>();
+
+                for (int i = 0; i < 7; i++) {
+                    for (int k = 0; k < q.getRequetes()[i].size(); k++) {
+                        df.add((float) 0);
+                    }
+                    //Calculer le tf de chaque document
+                    for (int j = 0; j < lib.doclist.size(); j++) {
+                        //Pour chaque section
+                        for (int l=0; l < lib.doclist.get(j).getSection().size(); l++ ) {
+                            for (int k = 0; k < lib.doclist.get(j).getSection().get(l).getParagraphs().size(); k++) {
+                                List<Float> tf_per_par = calculate_tf_per_request_per_paragraph(q.getRequetes()[i], lib.getDoclist().get(j).getSection().get(l).getParagraphs().get(k), codeSMART.charAt(0));
+                                //System.out.println("doc id : " + i + " tf : " + tf_per_doc);
+                                tf_per_sec_par.add(tf_per_par);
+                                //System.out.println(tf_per_doc);
+                            }
+                            tf_per_doc_sec_par.add(tf_per_sec_par);
+                            tf_per_sec_par = new ArrayList<>();
+                        }
+                        all_tf_per_par.add(tf_per_doc_sec_par);
+                        tf_per_doc_sec_par = new ArrayList<>();
+                    }
+                    //Calculer l'idf
+                    for (int j = 0; j < all_tf_per_par.size(); j++) {
+                        for (int l = 0; l < all_tf_per_par.get(j).size(); l++) {
+                            for (int k = 0; k < all_tf_per_par.get(j).get(l).size(); k++) {
+                                List<Float> tf_times_idf_per_par = calculate_idf_per_tf(all_tf_per_par.get(j).get(l).get(k), lib.getDoclist().size(), codeSMART.charAt(1));
+                                all_tf_per_par.get(j).get(l).set(k, tf_times_idf_per_par);
+                                //System.out.println(tf_times_idf_per_doc);
+                            }
+                        }
+                    }
+
+                    //Normalisation
+                    List<List<List<Float>>> all_normalized_score = new ArrayList<>();
+                    List<List<Float>> normalized_score_sec_par = new ArrayList<>();
+
+                    for(int j= 0; j < all_tf_per_par.size(); j++) {
+                        for(int k=0; k < all_tf_per_par.get(j).size();k++) {
+                            List<Float> normalised_scores = normalisation(all_tf_per_par.get(j).get(k), codeSMART.charAt(2));
+                            normalized_score_sec_par.add(normalised_scores);
+                        }
+                        all_normalized_score.add(normalized_score_sec_par);
+                        normalized_score_sec_par = new ArrayList<>();
+                    }
+
+                    for (int j = 0; j < all_normalized_score.size(); j++) {
+                        for (int l = 0; l < all_normalized_score.get(j).size(); l++) {
+                            for(int k=0; k < all_normalized_score.get(j).get(l).size(); k++) {
+                                Score tmp = new Score(all_normalized_score.get(j).get(l).get(k), lib.getDoclist().get(j).getId(), lib.getDoclist().get(j).getSection().get(l).getId(), lib.getDoclist().get(j).getSection().get(l).getParagraphs().get(k).getId());
+                                score_per_request.add(tmp);
+                            }
+                        }
+                    }
+                    Collections.sort(score_per_request, Collections.reverseOrder());
+                    result.add(score_per_request);
+                    score_per_request = new ArrayList<>();
+                    all_tf_per_par.clear();
+                    df.clear();
+                }
+                return result;
         }
 
         return result;
 
+    }
+
+    private List<Float> calculate_tf_per_request_per_paragraph(List<String> request, Paragraph paragraph, char code_tf) {
+        List<Float> tf_per_word = new ArrayList<>();
+
+        for (int i = 0; i < request.size(); i++) {
+            String word = request.get(i);
+            tf_per_word.add((float) (0));
+
+            for (int k = 0; k < paragraph.getPostingList().size(); k++) {
+                if (word.compareTo(paragraph.getPostingList().get(k).getKey()) == 0) {
+                    tf_per_word.set(i, (float) paragraph.getPostingList().get(k).getValue());
+
+                    df.set(i, df.get(i) + 1);
+                }
+            }
+        }
+
+
+        if (code_tf == 'l') {
+            for (int i = 0; i < tf_per_word.size(); i++) {
+                float tmp = (float) (1 + Math.log10(tf_per_word.get(i)));
+                if (Float.isInfinite(tmp)) {
+                    tmp = 0;
+                }
+                tf_per_word.set(i, tmp);
+            }
+        }
+
+        return tf_per_word;
     }
 
     private List<Float> calculate_tf_per_request_per_section(List<String> request, Section section, char code_tf) {
@@ -260,5 +354,115 @@ public class RankingScores {
             id_visited = new ArrayList<>();
         }
         return result;
+    }
+
+    public List<List<Score>> ranking_bm25(Queries q, Library lib, double k, double b) {
+
+        List<List<Score>> result = new ArrayList<>();
+        List<Score> score_per_request = new ArrayList<>();
+        List<Pair<Integer, Double>> score_per_doc = new ArrayList<>();
+        boolean all_pairs_initialized = false;
+
+        Score tmp;
+
+        int doc_frequency_for_one_term;
+        int term_frequency_for_one_term;
+        double bm25_log;
+        double bm25_tf = 0;
+        double bm25_score = 0;
+        List<Float> bm25_per_doc = new ArrayList<>();
+
+        //Pour chaque requête
+        for (int i = 0; i < 7; i++) {
+            //pour chaque mot de la requête
+            for (int j = 0; j < q.getRequetes()[i].size(); j++) {
+                String mot_requete = q.getRequetes()[i].get(j);
+                //TODO : On la calcule pour chaque requête alors que c'est la même !
+                doc_frequency_for_one_term = calculate_doc_frequency(mot_requete, lib);
+                //System.out.println(mot_requete + ", " + doc_frequency_for_one_term);
+                bm25_log = Math.log10(((double) lib.getDoclist().size() - (double) doc_frequency_for_one_term + 0.5) / ((double) doc_frequency_for_one_term + 0.5));
+
+                //Pour chaque document
+                for (int l = 0; l < lib.getDoclist().size(); l++) {
+                    //On calcule le tf pour ce document
+                    term_frequency_for_one_term = calculate_term_frequency(q.getRequetes()[i].get(j), lib.getDoclist().get(l));
+
+                    //On calcule la partie avec le tf
+                    bm25_tf = ((double) term_frequency_for_one_term * (k + 1)) / (k * ((1 - b) + b * ((double) lib.getDoclist().get(l).getDocLength() / avLength)) + (double) term_frequency_for_one_term);
+
+                    //On calcule le score de bm25 pour le document
+                    bm25_score = bm25_log * bm25_tf;
+
+                    if (all_pairs_initialized) {
+                        Pair<Integer, Double> pair_found = score_per_doc.get(l);
+                        Pair<Integer, Double> pair_tmp = new Pair<>(lib.getDoclist().get(l).getId(), bm25_score + pair_found.getValue());
+
+                        score_per_doc.set(l, pair_tmp);
+                    } else {
+                        //On crée une Pair du score et du docid
+                        Pair<Integer, Double> pair_tmp = new Pair<>(lib.getDoclist().get(l).getId(), bm25_score);
+                        score_per_doc.add(pair_tmp);
+                    }
+                }
+
+                all_pairs_initialized = true;
+                tf = 0;
+            }
+
+            //pour toutes les pair docid, score bm25
+            for(int m=0; m<score_per_doc.size();m++){
+                tmp = new Score(score_per_doc.get(m).getValue().floatValue(), score_per_doc.get(m).getKey(), -1, -1);
+
+                score_per_request.add(tmp);
+            }
+
+            Collections.sort(score_per_request, Collections.reverseOrder());
+            result.add(score_per_request);
+            score_per_request = new ArrayList<>();
+        }
+        return result;
+    }
+
+    private int calculate_term_frequency(String word, Documents dic) {
+        int term_frequency_for_one_term = 0;
+
+        //pour chaque doc
+        for (int i = 0; i < dic.getPostingList().size(); i++) {
+            //Pour chaque mot
+            if (dic.getPostingList().get(i).getKey().compareTo(word) == 0) {
+                term_frequency_for_one_term  += dic.getPostingList().get(i).getValue();
+
+
+            }
+        }
+
+        return term_frequency_for_one_term;
+    }
+
+    private int calculate_doc_frequency(String word, Library lib) {
+        int doc_frequency = 0;
+
+        //pour chaque doc
+        for (int i = 0; i < lib.getDoclist().size(); i++) {
+            //Pour chaque mot
+            for (int j = 0; j < lib.getDoclist().get(i).getPostingList().size(); j++) {
+                if (lib.getDoclist().get(i).getPostingList().get(j).getKey().compareTo(word) == 0) {
+                    doc_frequency++;
+                }
+
+            }
+
+            if(!calc_avLenght) {
+                avLength += lib.getDoclist().get(i).getDocLength();
+            }
+        }
+
+        if(!calc_avLenght) {
+            avLength = avLength / lib.getDoclist().size();
+            calc_avLenght = true;
+        }
+
+
+        return doc_frequency;
     }
 }

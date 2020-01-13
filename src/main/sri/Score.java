@@ -10,17 +10,6 @@ public class Score implements Comparable<Score>{
 
     }
 
-    public Score(float score, int docid) {
-        this.score = score;
-        this.docid = docid;
-    }
-
-    public Score(float score, int docid, int secid) {
-        this.score = score;
-        this.docid = docid;
-        this.secid = secid;
-    }
-
     public Score(float score, int docid, int secid, int parid) {
         this.score = score;
         this.docid = docid;

@@ -8,7 +8,7 @@ import java.util.Scanner;
 
 public class MainApplication {
     private static int step = 2; // 1 = txt, 2 = XML
-    private static int typeElement = 1; //0 = article, 1 = section
+    private static int typeElement = 0; //0 = article, 1 = section
     private static boolean useStopWord = false;
     private static boolean useStemmer = false;
 
@@ -88,9 +88,9 @@ public class MainApplication {
             nb_run++;
             System.out.println("Fichier créé");
         }
-/*
-        for(int i=0; i<16; i++) {
-            result = rs.ranking_bm25(requete, lib, 1+(i*0.05), 0.75);
+
+        for(int i=0; i<1; i++) {
+            result = rs.ranking_bm25(requete, lib, 1, 0.75);
             //System.out.println("result : " + result.toString());
             // Création du fichier avec le bon nom de fichier dans un dossier "out"
             System.out.println("Creation du fichier bm25");
@@ -98,7 +98,7 @@ public class MainApplication {
             nb_run++;
             System.out.println("Fichier créé");
         }
-
+/*
         for(int i=0; i<16; i++) {
             result = rs.ranking_bm25(requete, lib, 1.2, 0.75 + (i * 0.05));
             //System.out.println("result : " + result.toString());
