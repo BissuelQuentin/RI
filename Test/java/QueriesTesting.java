@@ -1,14 +1,12 @@
-package main.sri;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class Queries {
+public class QueriesTesting {
     //Liste des requetes
     private List<String> requetes[] = new ArrayList[7];
     private List<Integer> idRequetes = new ArrayList();
 
-    public Queries (String param1, String param2) {
+    public QueriesTesting(String param1, String param2) {
         for (int i = 0; i < 7; i++) {
             this.requetes[i] = new ArrayList<>();
             this.requetes[i].add("a");
@@ -25,7 +23,7 @@ public class Queries {
 
     }
 
-    public Queries() {
+    public QueriesTesting() {
         for (int i = 0; i < 7; i++) {
             this.requetes[i] = new ArrayList<>();
         }
@@ -42,7 +40,7 @@ public class Queries {
 
         this.requetes[2].add("probabilistic");
         this.requetes[2].add("models");
-        //this.requetes[2].add("in");
+        this.requetes[2].add("in");
         this.requetes[2].add("information");
         this.requetes[2].add("retrieval");
 

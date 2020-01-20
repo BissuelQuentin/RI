@@ -1,21 +1,19 @@
-package main.sri;
-
 import javafx.util.Pair;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class RankingScores {
+public class RankingScoresTesting {
     List<Float> df = new ArrayList<>();
     int tf = 0;
     double avLength = 0;
     boolean calc_avLenght = false;
 
 
-    public List<List<Score>> ranking_all_queries(Queries q, Library lib, String codeSMART, int typeElement) {
-        List<List<Score>> result = new ArrayList<>();
-        List<Score> score_per_request = new ArrayList<>();
+    public List<List<ScoreTesting>> ranking_all_queries(QueriesTesting q, LibraryTesting lib, String codeSMART, int typeElement) {
+        List<List<ScoreTesting>> result = new ArrayList<>();
+        List<ScoreTesting> score_per_request = new ArrayList<>();
         List<List<Float>> all_tf_per_doc = new ArrayList<>();
         List<List<List<Float>>> all_tf_per_sec = new ArrayList<>();
         List<List<List<List<Float>>>> all_tf_per_par = new ArrayList<>();
@@ -44,7 +42,7 @@ public class RankingScores {
                         List<Float> normalised_scores = normalisation(all_tf_per_doc, codeSMART.charAt(2));
 
                         for (int j = 0; j < normalised_scores.size(); j++) {
-                            Score tmp = new Score(normalised_scores.get(j), lib.getDoclist().get(j).getId(),-1, -1);
+                            ScoreTesting tmp = new ScoreTesting(normalised_scores.get(j), lib.getDoclist().get(j).getId(),-1, -1);
                             score_per_request.add(tmp);
                         }
                         Collections.sort(score_per_request, Collections.reverseOrder());
@@ -92,7 +90,7 @@ public class RankingScores {
 
                     for (int j = 0; j < all_normalized_score.size(); j++) {
                         for (int l = 0; l < all_normalized_score.get(j).size(); l++) {
-                            Score tmp = new Score(all_normalized_score.get(j).get(l), lib.getDoclist().get(j).getId(), lib.getDoclist().get(j).getSection().get(l).getId(), -1);
+                            ScoreTesting tmp = new ScoreTesting(all_normalized_score.get(j).get(l), lib.getDoclist().get(j).getId(), lib.getDoclist().get(j).getSection().get(l).getId(), -1);
                             score_per_request.add(tmp);
                         }
                     }
@@ -154,7 +152,7 @@ public class RankingScores {
                     for (int j = 0; j < all_normalized_score.size(); j++) {
                         for (int l = 0; l < all_normalized_score.get(j).size(); l++) {
                             for(int k=0; k < all_normalized_score.get(j).get(l).size(); k++) {
-                                Score tmp = new Score(all_normalized_score.get(j).get(l).get(k), lib.getDoclist().get(j).getId(), lib.getDoclist().get(j).getSection().get(l).getId(), lib.getDoclist().get(j).getSection().get(l).getParagraphs().get(k).getId());
+                                ScoreTesting tmp = new ScoreTesting(all_normalized_score.get(j).get(l).get(k), lib.getDoclist().get(j).getId(), lib.getDoclist().get(j).getSection().get(l).getId(), lib.getDoclist().get(j).getSection().get(l).getParagraphs().get(k).getId());
                                 score_per_request.add(tmp);
                             }
                         }
@@ -172,7 +170,7 @@ public class RankingScores {
 
     }
 
-    private List<Float> calculate_tf_per_request_per_paragraph(List<String> request, Paragraph paragraph, char code_tf) {
+    private List<Float> calculate_tf_per_request_per_paragraph(List<String> request, ParagraphTesting paragraph, char code_tf) {
         List<Float> tf_per_word = new ArrayList<>();
 
         for (int i = 0; i < request.size(); i++) {
@@ -202,7 +200,7 @@ public class RankingScores {
         return tf_per_word;
     }
 
-    private List<Float> calculate_tf_per_request_per_section(List<String> request, Section section, char code_tf) {
+    private List<Float> calculate_tf_per_request_per_section(List<String> request, SectionTesting section, char code_tf) {
         List<Float> tf_per_word = new ArrayList<>();
 
         for (int i = 0; i < request.size(); i++) {
@@ -232,7 +230,7 @@ public class RankingScores {
         return tf_per_word;
     }
 
-    public List<Float> calculate_tf_per_request_per_document(List<String> request, Documents dict, char code_tf) {
+    public List<Float> calculate_tf_per_request_per_document(List<String> request, DocumentsTesting dict, char code_tf) {
         List<Float> tf_per_word = new ArrayList<>();
 
         for (int i = 0; i < request.size(); i++) {
@@ -333,9 +331,9 @@ public class RankingScores {
         return normalised_score;
     }
 
-    public List<List<Score>> keep_max_score(List<List<Score>> list_score){
-        List<List<Score>> result = new ArrayList<>();
-        List<Score> scores_for_one_request = new ArrayList<>();
+    public List<List<ScoreTesting>> keep_max_score(List<List<ScoreTesting>> list_score){
+        List<List<ScoreTesting>> result = new ArrayList<>();
+        List<ScoreTesting> scores_for_one_request = new ArrayList<>();
         List<Integer> id_visited = new ArrayList<>();
 
         for( int i=0; i < list_score.size(); i++){
@@ -354,14 +352,14 @@ public class RankingScores {
         return result;
     }
 
-    public List<List<Score>> ranking_bm25(Queries q, Library lib, double k, double b) {
+    public List<List<ScoreTesting>> ranking_bm25(QueriesTesting q, LibraryTesting lib, double k, double b) {
 
-        List<List<Score>> result = new ArrayList<>();
-        List<Score> score_per_request = new ArrayList<>();
+        List<List<ScoreTesting>> result = new ArrayList<>();
+        List<ScoreTesting> score_per_request = new ArrayList<>();
         List<Pair<Integer, Double>> score_per_doc = new ArrayList<>();
         boolean all_pairs_initialized = false;
 
-        Score tmp;
+        ScoreTesting tmp;
 
         int doc_frequency_for_one_term;
         int term_frequency_for_one_term;
@@ -380,16 +378,22 @@ public class RankingScores {
                 //System.out.println(mot_requete + ", " + doc_frequency_for_one_term);
                 bm25_log = Math.log10(((double) lib.getDoclist().size() - (double) doc_frequency_for_one_term + 0.5) / ((double) doc_frequency_for_one_term + 0.5));
 
+                System.out.println(mot_requete + " log :  "+ bm25_log);
+
                 //Pour chaque document
                 for (int l = 0; l < lib.getDoclist().size(); l++) {
                     //On calcule le tf pour ce document
+                    System.out.println(" doc " +l );
                     term_frequency_for_one_term = calculate_term_frequency(q.getRequetes()[i].get(j), lib.getDoclist().get(l));
+                    System.out.println("tf de " +mot_requete + " : " + term_frequency_for_one_term);
 
                     //On calcule la partie avec le tf
-                    bm25_tf = ((double) term_frequency_for_one_term * ( k + 1)) / (k * (((double)1 - b) + b * ((double) lib.getDoclist().get(l).getDocLength() / avLength)) + (double) term_frequency_for_one_term);
+                    bm25_tf = ((double) term_frequency_for_one_term * ((double) k + 1)) / (double) (k * (((double)1 - (double) b) + (double) b * ((double) lib.getDoclist().get(l).getDocLength() / 20)) + (double) term_frequency_for_one_term);
 
+                    System.out.println(mot_requete + " tf :  " + bm25_tf);
                     //On calcule le score de bm25 pour le document
                     bm25_score = bm25_log * bm25_tf;
+                    System.out.println(mot_requete + " tf :  " + bm25_tf);
 
                     if (all_pairs_initialized) {
                         Pair<Integer, Double> pair_found = score_per_doc.get(l);
@@ -409,7 +413,7 @@ public class RankingScores {
 
             //pour toutes les pair docid, score bm25
             for(int m=0; m<score_per_doc.size();m++){
-                tmp = new Score(score_per_doc.get(m).getValue().floatValue(), score_per_doc.get(m).getKey(), -1, -1);
+                tmp = new ScoreTesting(score_per_doc.get(m).getValue().floatValue(), score_per_doc.get(m).getKey(), -1, -1);
 
                 score_per_request.add(tmp);
             }
@@ -421,7 +425,7 @@ public class RankingScores {
         return result;
     }
 
-    private int calculate_term_frequency(String word, Documents dic) {
+    private int calculate_term_frequency(String word, DocumentsTesting dic) {
         int term_frequency_for_one_term = 0;
 
         //pour chaque doc
@@ -437,7 +441,7 @@ public class RankingScores {
         return term_frequency_for_one_term;
     }
 
-    private int calculate_doc_frequency(String word, Library lib) {
+    private int calculate_doc_frequency(String word, LibraryTesting lib) {
         int doc_frequency = 0;
 
         //pour chaque doc
@@ -456,7 +460,7 @@ public class RankingScores {
         }
 
         if(!calc_avLenght) {
-            avLength = avLength / (double) lib.getDoclist().size();
+            avLength = avLength / lib.getDoclist().size();
             calc_avLenght = true;
         }
 

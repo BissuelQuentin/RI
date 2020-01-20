@@ -1,5 +1,15 @@
-package main.sri;
+import main.sri.Paragraph;
+import main.sri.PorterStemmer;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -7,30 +17,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.xml.sax.EntityResolver;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
-public class ParserXML {
+public class ParserXMLTesting {
     /*nouvel objet avec id, liste de mots et taille du document (/section/trucs a ajouter)*/
 
-    public ParserXML() {
+    public ParserXMLTesting() {
 
     }
 
-    public List<Documents> execute(List<String> stopWords, boolean useStemmer, int typeElement){
-        File directory = new File("coll");
+    public List<DocumentsTesting> execute(List<String> stopWords, boolean useStemmer, int typeElement){
+        File directory = new File("Test/ressources");
         File[] list_file = directory.listFiles();
-        List<Documents> collection = new ArrayList<>();
+        List<DocumentsTesting> collection = new ArrayList<>();
         for(File file : list_file) {
-            Documents dp = this.execute_bis(file, stopWords, useStemmer, typeElement);
+            DocumentsTesting dp = this.execute_bis(file, stopWords, useStemmer, typeElement);
 
             List<String> words = dp.getWords();
             words.forEach(word -> {
@@ -49,7 +48,7 @@ public class ParserXML {
     }
 
 
-    private Documents execute_bis(File file, List<String> stopWords, boolean useStemmer, int typeElement) {
+    private DocumentsTesting execute_bis(File file, List<String> stopWords, boolean useStemmer, int typeElement) {
         DocumentBuilderFactory fabric = DocumentBuilderFactory.newInstance();
         DocumentBuilder constructor;
 
@@ -79,18 +78,17 @@ public class ParserXML {
             article = article.toLowerCase();
             String[] tmp = article.split(" ");
             String[] tmp_ep;
-            String[] tmp_sec;
-            Documents dp = new Documents(Integer.parseInt(file.getName().substring(0, file.getName().length() - 4)), tmp.length, Arrays.asList(tmp));
+            DocumentsTesting dp = new DocumentsTesting(Integer.parseInt(file.getName().substring(0, file.getName().length() - 4)), tmp.length, Arrays.asList(tmp));
 
             if(typeElement >= 1) {
                 //Gestion des sections
-                Section sec;
+                SectionTesting sec;
                 NodeList element = document.getElementsByTagName("sec");
                 XPathFactory xpf = XPathFactory.newInstance();
                // XPath path;
                 String path;
 
-                List<Section> sections = new ArrayList<>();
+                List<SectionTesting> sections = new ArrayList<>();
                 for (int i = 0; i < element.getLength(); i++) {
                     String e = element.item(i).getTextContent();
                     e.trim();
@@ -98,11 +96,11 @@ public class ParserXML {
                     e = e.replaceAll("[^A-Za-z0-9 ]", " ");
                     e = e.replaceAll("^ +| +$|( )+", "$1");
                     e = e.toLowerCase();
-                    tmp_sec = e.split(" ");
+                    tmp = e.split(" ");
 
                     if(typeElement >=2){
                         NodeList element_ep = document.getElementsByTagName("p");
-                        List<Paragraph> paragraphs = new ArrayList<>();
+                        List<ParagraphTesting> paragraphs = new ArrayList<>();
                         for(int j=0; j<element_ep.getLength(); j++) {
                             String ep = element_ep.item(j).getTextContent();
                             ep.trim();
@@ -112,23 +110,23 @@ public class ParserXML {
                             ep = ep.toLowerCase();
                             tmp_ep = ep.split(" ");
 
-                            Paragraph par = new Paragraph(tmp_ep.length, j, Arrays.asList(tmp));
+                            ParagraphTesting par = new ParagraphTesting(tmp_ep.length, j, Arrays.asList(tmp));
 
                             paragraphs.add(par);
                         }
 
-                        sec = new Section(tmp_sec.length, i, Arrays.asList(tmp), paragraphs);
+                        sec = new SectionTesting(tmp.length, i, Arrays.asList(tmp), paragraphs);
 
                     }
                     else {
-                        sec = new Section(tmp_sec.length, i, Arrays.asList(tmp));
+                        sec = new SectionTesting(tmp.length, i, Arrays.asList(tmp));
                     }
 
                     sections.add(sec);
 
                 }
 
-                dp.setSection(sections);
+               dp.setSection(sections);
             }
             return dp;
         } catch (ParserConfigurationException | SAXException | IOException e) {
